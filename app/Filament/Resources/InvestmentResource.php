@@ -13,6 +13,8 @@ use Filament\Resources\Resource;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Database\Eloquent\Model;
 
 class InvestmentResource extends Resource
 {
@@ -20,6 +22,31 @@ class InvestmentResource extends Resource
     protected static ?string $model = Investment::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
+
+    public static function getGlobalSearchResultTitle(Model $record): string|Htmlable
+    {
+        return "Investment #" . $record->id . " - " . $record->investment_type;
+    }
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'Investor' => $record->user->name,
+            'Amount' => $record->amount,
+            'Interest Rate' => $record->interest_rate . '%',
+            'Status' => ucfirst($record->status)
+        ];
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return [
+            'investment_type',
+            'user.name',
+            'status',
+            'notes'
+        ];
+    }
 
     public static function form(Form $form): Form
     {

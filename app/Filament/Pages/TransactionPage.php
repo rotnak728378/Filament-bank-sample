@@ -12,6 +12,7 @@ use Filament\Tables\Actions\Action;
 use Filament\Tables\Table;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
+use Illuminate\Database\Eloquent\Model;
 
 class TransactionPage extends Page implements HasTable
 {
@@ -28,9 +29,57 @@ class TransactionPage extends Page implements HasTable
 
     public $activeTab = 'all';
 
+    public static function getGlobalSearchResultTitle(Model $record): string|\Illuminate\Contracts\Support\Htmlable
+    {
+        return 'System Settings';
+    }
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'General' => 'Site configuration and system settings',
+            'Localization' => 'Language and timezone settings',
+            'Notifications' => 'Email and notification configuration'
+        ];
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return [
+            'settings',
+            'configuration',
+            'system',
+            'email',
+            'language',
+            'timezone',
+            'notifications'
+        ];
+    }
+
+    public static function getGlobalSearchResults(string $search)
+    {
+        // Since Settings is a single page, we'll return it if any of the searchable terms match
+        $searchTerms = self::getGloballySearchableAttributes();
+        foreach ($searchTerms as $term) {
+            if (str_contains(strtolower($term), strtolower($search))) {
+                return collect([new class {
+                    public $id = 'settings';
+                }]);
+            }
+        }
+        return collect();
+    }
+
+    public static function getGlobalSearchResultUrl(Model $record): string
+    {
+        return static::getUrl();
+    }
+
     public function updatedActiveTab()
     {
-        $this->resetTable(); // Reset table when tab changes
+        $this->resetTable();
+        // Dispatch with monthlyExpenses as direct data
+        $this->dispatch('update-chart', monthlyExpenses: $this->monthlyExpenses);
     }
 
     public function getCardsProperty()

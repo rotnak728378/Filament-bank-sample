@@ -2,6 +2,9 @@
 
 namespace App\Filament\Pages;
 
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use App\Models\Card;
 
@@ -23,6 +26,13 @@ class CreditCard extends Page
     public $expirationDate;
     public $search = '';
 
+    protected $rules = [
+        'cardType' => 'required|string|max:255',
+        'cardName' => 'required|string|max:255',
+        'cardNumber' => 'required|string|min:16|max:19',
+        'expirationDate' => 'required|date',
+    ];
+
     protected $bankColors = [
         'DBL Bank' => 'blue',
         'BRC Bank' => 'pink',
@@ -42,7 +52,7 @@ class CreditCard extends Page
 
     public function getCardListProperty()
     {
-        $query = Card::query();
+        $query = Card::query()->where('user_id', auth()->id());
 
         if ($this->search) {
             $query->where(function ($q) {
@@ -52,7 +62,7 @@ class CreditCard extends Page
             });
         }
 
-        return $query->get()->map(function ($card) {
+        return $query->paginate(3)->through(function ($card) {
             $card->bank_color = $this->bankColors[$card->bank] ?? 'gray';
             return $card;
         });
@@ -60,7 +70,8 @@ class CreditCard extends Page
 
     public function getCardExpenseStatsProperty()
     {
-        return Card::groupBy('bank')
+        return Card::where('user_id', auth()->id())
+            ->groupBy('bank')
             ->selectRaw('bank as bank, count(*) as count')
             ->get()
             ->map(function ($stat) {
@@ -71,25 +82,35 @@ class CreditCard extends Page
 
     public function addCard()
     {
-        $validated = $this->validate([
-            'cardType' => 'required',
-            'cardName' => 'required|string|max:255',
-            'cardNumber' => 'required|string|max:19',
-            'expirationDate' => 'required|date',
-        ]);
+        $validated = $this->validate();
 
-        Card::create([
-            'type' => $validated['cardType'],
-            'holder_name' => $validated['cardName'],
-            'card_number' => $validated['cardNumber'],
-            'expired_date' => $validated['expirationDate'],
-            'balance' => 5756.00,
-            'bank' => 'DBL Bank',
-        ]);
+        try {
+            Card::create([
+                'type' => $validated['cardType'],
+                'holder_name' => $validated['cardName'],
+                'card_number' => $validated['cardNumber'],
+                'expired_date' => $validated['expirationDate'],
+                'balance' => 5756.00,
+                'bank' => 'MCP Bank',
+                'status' => 'active',
+                'user_id' => auth()->id(),
+            ]);
 
-        $this->reset(['cardNumber']);
+            $this->reset(['cardNumber', 'cardName']);
+            $this->cardType = 'Classic'; // Reset to default
 
-        $this->notify('success', 'Card added successfully!');
+            Notification::make()
+                ->title('Card added successfully!')
+                ->success()
+                ->send();
+
+        } catch (\Exception $e) {
+            echo $e;
+            Notification::make()
+                ->title('Error adding card')
+                ->danger()
+                ->send();
+        }
     }
 
     public function blockCard($cardId)
@@ -133,6 +154,57 @@ class CreditCard extends Page
                 'description' => 'Withdraw without any card',
                 'bg' => 'cyan'
             ]
+        ];
+    }
+
+    public static function getGlobalSearchResultTitle(Card $record): string
+    {
+        return $record->holder_name;
+    }
+
+    public static function getGlobalSearchResultDetails(Card $record): array
+    {
+        return [
+            'Card Number' => substr($record->card_number, -4),
+            'Bank' => $record->bank,
+            'Status' => ucfirst($record->status),
+            'Balance' => number_format($record->balance, 2),
+        ];
+    }
+
+    public static function getGlobalSearchResults(string $search)
+    {
+        return Card::where('holder_name', 'like', "%{$search}%")
+            ->orWhere('card_number', 'like', "%{$search}%")
+            ->orWhere('bank', 'like', "%{$search}%")
+            ->limit(10)
+            ->get();
+    }
+
+    public static function getGlobalSearchResultUrl(Card $record): string
+    {
+        return static::getUrl();
+    }
+
+    public static function getGlobalSearchResultActions(Card $record): array
+    {
+        return [
+            Action::make('block')
+                ->label('Block Card')
+                ->icon('heroicon-o-ban')
+                ->color('danger')
+                ->url(static::getUrl() . "?action=block&card={$record->id}"),
+
+            ActionGroup::make([
+                Action::make('view')
+                    ->label('View Details')
+                    ->icon('heroicon-o-eye')
+                    ->url(static::getUrl() . "?card={$record->id}"),
+                Action::make('edit')
+                    ->label('Edit Card')
+                    ->icon('heroicon-o-pencil')
+                    ->url(static::getUrl() . "?action=edit&card={$record->id}"),
+            ]),
         ];
     }
 

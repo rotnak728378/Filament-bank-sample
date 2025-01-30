@@ -5,13 +5,14 @@
             <div class="col-span-2">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-semibold">My Cards</h2>
-                    <a href="#" class="text-primary-600 hover:text-primary-700">+ Add Card</a>
+                    <a href="/credit-card" class="text-primary-600 hover:text-primary-700">+ Add Card</a>
                 </div>
 
                 <div class="grid grid-cols-2 gap-6">
                     @foreach($cards as $card)
                         <div>
-                            <div class="rounded-tl-[30px] m-0 rounded-tr-[30px] p-6 h-[180px] {{ $loop->iteration == 1 ? 'bg-gradient-to-br from-blue-600 to-blue-400 text-white' : ($loop->iteration == 2 ? 'bg-gradient-to-br from-blue-900 to-purple-900 text-white' : 'bg-white border text-black') }}">
+                            <div
+                                class="rounded-tl-[30px] m-0 rounded-tr-[30px] p-6 h-[180px] {{ $loop->iteration == 1 ? 'bg-gradient-to-br from-blue-600 to-blue-400 text-white' : ($loop->iteration == 2 ? 'bg-gradient-to-br from-blue-900 to-purple-900 text-white' : 'bg-white border text-black') }}">
                                 <div class="flex items-center justify-between mb-4">
                                     <div>
                                         <p class="text-sm opacity-80">Balance</p>
@@ -62,13 +63,14 @@
                 </div>
             </div>
 
-             <!-- Expense Chart -->
-             <div class="">
+            <!-- Expense Chart -->
+            <div class="">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-lg font-semibold">My Expense</h3>
                 </div>
 
-                <div class="h-[225px] bg-white shadow-sm rounded-xl ring-1 ring-gray-950/5 p-6" x-data="expenseChart(@js($monthlyExpenses))">
+                <div class="h-[225px] bg-white shadow-sm rounded-xl ring-1 ring-gray-950/5 p-6"
+                    x-data="expenseChart(@js($monthlyExpenses))" wire:ignore>
                     <canvas x-ref="canvas"></canvas>
                 </div>
             </div>
@@ -107,19 +109,63 @@
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script>
             document.addEventListener('alpine:init', () => {
-                Alpine.data('expenseChart', (data) => ({
+                Alpine.data('expenseChart', (initialData) => ({
                     chart: null,
                     init() {
-                        this.initChart(data);
+                        // Initial chart creation
+                        this.$nextTick(() => {
+                            this.initChart(initialData);
+                        });
+
+                        // Listen for the Livewire event
+                        Livewire.on('update-chart', (data) => {
+                            // Ensure we're working with the correct data structure
+                            const chartData = data.monthlyExpenses || [];
+
+                            // Update existing chart instead of recreating
+                            if (this.chart) {
+                                this.chart.data.labels = chartData.map(d => d.month);
+                                this.chart.data.datasets[0].data = chartData.map(d => d.amount);
+                                this.chart.update('active');
+                            } else {
+                                this.initChart(chartData);
+                            }
+                        });
+
+                        // Cleanup on component destruction
+                        this.$cleanup(() => {
+                            if (this.chart) {
+                                this.chart.destroy();
+                                this.chart = null;
+                            }
+                        });
                     },
                     initChart(data) {
-                        const ctx = this.$refs.canvas.getContext('2d');
-
-                        // Destroy existing chart if it exists
-                        if (this.chart) {
-                            this.chart.destroy();
+                        if (!data || !Array.isArray(data)) {
+                            console.warn("Invalid data provided to initChart:", data);
+                            return;
                         }
 
+                        // Safety check for canvas element
+                        const canvas = this.$refs.canvas;
+                        if (!canvas) {
+                            console.warn("Canvas element not found");
+                            return;
+                        }
+
+                        const ctx = canvas.getContext('2d');
+                        if (!ctx) {
+                            console.warn("Could not get 2d context from canvas");
+                            return;
+                        }
+
+                        // Ensure clean destruction of existing chart
+                        if (this.chart) {
+                            this.chart.destroy();
+                            this.chart = null;
+                        }
+
+                        // Create new chart
                         this.chart = new Chart(ctx, {
                             type: 'bar',
                             data: {
@@ -137,6 +183,9 @@
                             options: {
                                 responsive: true,
                                 maintainAspectRatio: false,
+                                animation: {
+                                    duration: 750
+                                },
                                 plugins: {
                                     legend: {
                                         display: false,
@@ -162,11 +211,6 @@
                         });
                     },
                 }));
-            });
-
-            // Re-initialize chart when Livewire updates
-            document.addEventListener('livewire:navigated', () => {
-                Alpine.initTree(document.body);
             });
         </script>
     @endpush

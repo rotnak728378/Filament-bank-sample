@@ -16,11 +16,17 @@ class Card extends Model
         'expired_date',
         'balance',
         'bank',
-        'status'
+        'status',
+        'user_id'
     ];
 
     protected $casts = [
         'expired_date' => 'date',
         'balance' => 'decimal:2'
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

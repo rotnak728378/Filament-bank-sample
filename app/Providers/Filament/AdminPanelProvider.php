@@ -28,17 +28,12 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('admin')
-            ->path('admin')
             ->login()
             ->colors([
                 'primary' => Color::Blue,
             ])
             ->breadcrumbs(false)
             ->viteTheme('resources/css/filament/admin/theme.css', 'resources/css/filament/tables.css')
-            // ->viteTheme([
-            //     'resources/css/app.css',
-            //     'resources/js/app.js',
-            // ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
@@ -47,7 +42,6 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogo(asset('/images/main-logo.png'))
             ->brandLogoHeight('40px')
             ->sidebarWidth('250px')
-            // ->maxContentWidth('full')
             ->unsavedChangesAlerts()
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
@@ -71,10 +65,8 @@ class AdminPanelProvider extends PanelProvider
             ]);
     }
 
-    public function boot(): void
+    public static function getGlobalSearchAttributes(): array
     {
-        FilamentAsset::register([
-            Css::make('custom-tables', __DIR__ . '/../../public/css/filament/tables.css'),
-        ]);
+        return ['title', 'description', 'author.name'];
     }
 }

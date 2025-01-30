@@ -14,6 +14,8 @@ use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Database\Eloquent\Model;
 
 class LoanResource extends Resource
 {
@@ -21,6 +23,34 @@ class LoanResource extends Resource
     protected static ?string $model = Loan::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-credit-card';
+
+    public static function getGlobalSearchResultTitle(Model $record): string|Htmlable
+    {
+        return "Loan #" . $record->id . " - " . $record->amount;
+    }
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'Borrower' => $record->user->name,
+            'Status' => ucfirst($record->status),
+            'Due Date' => $record->due_date->format('M d, Y'),
+            'Balance' => $record->remaining_amount,
+            'Interest Rate' => $record->interest_rate . '%'
+        ];
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return [
+            'id',
+            'user.name',
+            'status',
+            'purpose',
+            'investment.investment_type'
+        ];
+    }
+
 
     public static function form(Form $form): Form
     {

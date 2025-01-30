@@ -11,6 +11,8 @@ use Filament\Resources\Resource;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Database\Eloquent\Model;
 
 class AccountResource extends Resource
 {
@@ -18,6 +20,26 @@ class AccountResource extends Resource
     protected static ?string $model = Account::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-building-library';
+
+    public static function getGlobalSearchResultTitle(Model $record): string|Htmlable
+    {
+        return "Account #" . $record->account_number;
+    }
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'Owner' => $record->user->name,
+            'Type' => ucfirst($record->type),
+            'Balance' => $record->balance,
+            'Status' => ucfirst($record->status)
+        ];
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['account_number', 'user.name', 'type', 'status'];
+    }
 
     public static function form(Form $form): Form
     {

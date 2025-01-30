@@ -6,7 +6,7 @@
                 <div class="col-span-2">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-xl font-semibold">My Cards</h2>
-                        <a href="/admin/credit-card" class="text-primary-600 hover:text-primary-700">See All</a>
+                        <a href="/credit-card" class="text-primary-600 hover:text-primary-700">See All</a>
                     </div>
                     <div class="grid grid-cols-2 gap-6">
                         @foreach($cards as $card)
@@ -101,10 +101,12 @@
                 <!-- Weekly Activity -->
                 <div class="">
                     <h3 class="text-lg font-semibold mb-6">Weekly Activity</h3>
-                    <div class="h-[300px] bg-white rounded-xl p-6 ring-1 ring-gray-950/5 p-6"
-                        x-data="weeklyChart(@js($weeklyActivity))">
+                    <div class="h-[300px] bg-white rounded-xl p-6 ring-1 ring-gray-950/5"
+                        x-data="weeklyChart(@js($weeklyActivity))"
+                        wire:ignore>
                         <canvas x-ref="canvas"></canvas>
                     </div>
+
                 </div>
 
                 <!-- Quick Transfer -->
@@ -183,7 +185,9 @@
                 <!-- Expense Statistics -->
                 <div class="p-0">
                     <h3 class="text-lg font-semibold mb-6">Expense Statistics</h3>
-                    <div class="h-[300px] bg-white rounded-xl p-6 ring-1 ring-gray-950/5 p-6" x-data="expenseChart(@js($expenseStats))">
+                    <div class="h-[300px] bg-white rounded-xl p-6 ring-1 ring-gray-950/5"
+                        x-data="expenseChart(@js($expenseStats))"
+                        wire:ignore>
                         <canvas x-ref="canvas"></canvas>
                     </div>
                 </div>
@@ -191,7 +195,7 @@
                 <!-- Balance History -->
                 <div class="p-0">
                     <h3 class="text-lg font-semibold mb-6">Balance History</h3>
-                    <div class="h-[300px] bg-white rounded-xl p-6 ring-1 ring-gray-950/5 p-6" x-data="balanceChart(@js($balanceHistory))">
+                    <div class="h-[300px] bg-white rounded-xl p-6 ring-1 ring-gray-950/5 p-6" x-data="balanceChart(@js($balanceHistory))" wire:ignore>
                         <canvas x-ref="canvas"></canvas>
                     </div>
                 </div>
@@ -200,127 +204,182 @@
     </div>
 
     @push('scripts')
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script>
-            document.addEventListener('alpine:init', () => {
-                Alpine.data('weeklyChart', (data) => ({
-                    init() {
-                        const ctx = this.$refs.canvas.getContext('2d');
-                        new Chart(ctx, {
-                            type: 'bar',
-                            data: {
-                                labels: data.labels,
-                                datasets: [{
-                                    label: 'Deposit',
-                                    data: data.deposits,
-                                    backgroundColor: '#10B981',
-                                    borderRadius: 8,
-                                    barPercentage: 0.5,
-                                }, {
-                                    label: 'Withdraw',
-                                    data: data.withdrawals,
-                                    backgroundColor: '#EF4444',
-                                    borderRadius: 8,
-                                    barPercentage: 0.5,
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                scales: {
-                                    y: {
-                                        beginAtZero: true,
-                                        grid: {
-                                            display: false
-                                        }
-                                    },
-                                    x: {
-                                        grid: {
-                                            display: false
-                                        }
-                                    }
-                                },
-                                plugins: {
-                                    legend: {
-                                        position: 'top',
-                                    }
-                                }
-                            }
-                        });
-                    }
-                }));
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('weeklyChart', (initialData) => ({
+                chart: null,
+                init() {
+                    this.$nextTick(() => {
+                        this.createChart(initialData);
+                    });
 
-                Alpine.data('expenseChart', (data) => ({
-                    init() {
-                        const ctx = this.$refs.canvas.getContext('2d');
-                        new Chart(ctx, {
-                            type: 'pie',
-                            data: {
-                                labels: data.map(d => d.label),
-                                datasets: [{
-                                    data: data.map(d => d.percentage),
-                                    backgroundColor: data.map(d => d.color),
-                                    borderWidth: 0,
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: {
-                                    legend: {
-                                        position: 'right',
-                                    }
-                                }
-                            }
-                        });
-                    }
-                }));
+                    // Clean up on component destruction
+                    this.$cleanup(() => {
+                        if (this.chart) {
+                            this.chart.destroy();
+                            this.chart = null;
+                        }
+                    });
+                },
+                createChart(data) {
+                    const ctx = this.$refs.canvas.getContext('2d');
 
-                Alpine.data('balanceChart', (data) => ({
-                    init() {
-                        const ctx = this.$refs.canvas.getContext('2d');
-                        new Chart(ctx, {
-                            type: 'line',
-                            data: {
-                                labels: data.labels,
-                                datasets: [{
-                                    data: data.data,
-                                    borderColor: '#4F46E5',
-                                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                                    fill: true,
-                                    tension: 0.4,
-                                    borderWidth: 2,
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: {
-                                    legend: {
+                    if (this.chart) {
+                        this.chart.destroy();
+                    }
+
+                    this.chart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                label: 'Deposit',
+                                data: data.deposits,
+                                backgroundColor: '#10B981',
+                                borderRadius: 8,
+                                barPercentage: 0.5,
+                            }, {
+                                label: 'Withdraw',
+                                data: data.withdrawals,
+                                backgroundColor: '#EF4444',
+                                borderRadius: 8,
+                                barPercentage: 0.5,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {
                                         display: false
                                     }
                                 },
-                                scales: {
-                                    y: {
-                                        beginAtZero: true,
-                                        grid: {
-                                            display: false
-                                        },
-                                        ticks: {
-                                            callback: value => '$' + value.toLocaleString()
-                                        }
+                                x: {
+                                    grid: {
+                                        display: false
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                }
+                            }
+                        }
+                    });
+                }
+            }));
+
+            Alpine.data('expenseChart', (initialData) => ({
+                chart: null,
+                init() {
+                    this.$nextTick(() => {
+                        this.createChart(initialData);
+                    });
+
+                    this.$cleanup(() => {
+                        if (this.chart) {
+                            this.chart.destroy();
+                            this.chart = null;
+                        }
+                    });
+                },
+                createChart(data) {
+                    const ctx = this.$refs.canvas.getContext('2d');
+
+                    if (this.chart) {
+                        this.chart.destroy();
+                    }
+
+                    this.chart = new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: data.map(d => d.label),
+                            datasets: [{
+                                data: data.map(d => d.percentage),
+                                backgroundColor: data.map(d => d.color),
+                                borderWidth: 0,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'right',
+                                }
+                            }
+                        }
+                    });
+                }
+            }));
+
+            Alpine.data('balanceChart', (initialData) => ({
+                chart: null,
+                init() {
+                    this.$nextTick(() => {
+                        this.createChart(initialData);
+                    });
+
+                    this.$cleanup(() => {
+                        if (this.chart) {
+                            this.chart.destroy();
+                            this.chart = null;
+                        }
+                    });
+                },
+                createChart(data) {
+                    const ctx = this.$refs.canvas.getContext('2d');
+
+                    if (this.chart) {
+                        this.chart.destroy();
+                    }
+
+                    this.chart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                data: data.data,
+                                borderColor: '#4F46E5',
+                                backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                                fill: true,
+                                tension: 0.4,
+                                borderWidth: 2,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {
+                                        display: false
                                     },
-                                    x: {
-                                        grid: {
-                                            display: false
-                                        }
+                                    ticks: {
+                                        callback: value => '$' + value.toLocaleString()
                                     }
                                 },
-                            }
-                        });
-                    }
-                }));
-            });
-        </script>
+                                x: {
+                                    grid: {
+                                        display: false
+                                    }
+                                }
+                            },
+                        }
+                    });
+                }
+            }));
+        });
+    </script>
     @endpush
 </x-filament-panels::page>

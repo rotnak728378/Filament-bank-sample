@@ -95,13 +95,22 @@
                                         {{ substr_replace($card->card_number, ' **** **** ', 4, 8) }}</p>
                                 </div>
                                 <div>
-                                    <p>Namain Card</p>
+                                    <p>Name on Card</p>
                                     <p class="text-sm text-gray-600">{{ $card->holder_name }}</p>
                                 </div>
                                 <a href="#" class="text-blue-600 hover:text-blue-800">View Details</a>
                             </div>
                         </div>
                     @endforeach
+
+                    <!-- Pagination -->
+                    @if ($cardList->hasPages())
+                        <div class="mt-4">
+                            <div class="flex items-center justify-between">
+                                {{ $cardList->links() }}
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </section>
         </div>
@@ -120,20 +129,27 @@
                         and services on credit or obtain cash advances.
                     </p>
 
-                    <form wire:submit="addCard" class="space-y-6">
+                    <form wire:submit.prevent="addCard" class="space-y-6">
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <!-- Card Type -->
                             <div>
                                 <label for="cardType" class="block mb-2 text-gray-900">Card Type</label>
-                                <input type="text" id="cardType" wire:model="cardType" value="Classic"
-                                    class="w-full px-4 py-3 text-gray-400 bg-white border-gray-200 rounded-xl">
+                                <select id="cardType" wire:model="cardType"
+                                    class="w-full px-4 py-3 text-gray-700 bg-white border-gray-200 rounded-xl">
+                                    <option value="Classic">Classic</option>
+                                    <option value="Gold">Gold</option>
+                                    <option value="Platinum">Platinum</option>
+                                </select>
+                                @error('cardType') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
 
                             <!-- Name On Card -->
                             <div>
                                 <label for="cardName" class="block mb-2 text-gray-900">Name On Card</label>
-                                <input type="text" id="cardName" wire:model="cardName" value="My Cards"
-                                    class="w-full px-4 py-3 text-gray-400 bg-white border-gray-200 rounded-xl">
+                                <input type="text" id="cardName" wire:model="cardName"
+                                    placeholder="Enter card holder name"
+                                    class="w-full px-4 py-3 text-gray-700 bg-white border-gray-200 rounded-xl">
+                                @error('cardName') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
 
                             <!-- Card Number -->
@@ -141,15 +157,16 @@
                                 <label for="cardNumber" class="block mb-2 text-gray-900">Card Number</label>
                                 <input type="text" id="cardNumber" wire:model="cardNumber"
                                     placeholder="**** **** **** ****"
-                                    class="w-full px-4 py-3 text-gray-400 bg-white border-gray-200 rounded-xl">
+                                    class="w-full px-4 py-3 text-gray-700 bg-white border-gray-200 rounded-xl">
+                                @error('cardNumber') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
 
                             <!-- Expiration Date -->
                             <div>
                                 <label for="expirationDate" class="block mb-2 text-gray-900">Expiration Date</label>
                                 <input type="date" id="expirationDate" wire:model="expirationDate"
-                                    value="25 January 2025"
-                                    class="w-full px-4 py-3 text-gray-400 bg-white border-gray-200 rounded-xl">
+                                    class="w-full px-4 py-3 text-gray-700 bg-white border-gray-200 rounded-xl">
+                                @error('expirationDate') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
                         </div>
 
