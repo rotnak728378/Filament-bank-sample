@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@tailwind variants;
+
+
+@layer components {
+    .fi-dropdown-panel {
+        background: white;
+    }
+    .fi-sidebar-header {
+        background: white;
+        border-right: 1px solid #E6EFF5;
+    }
+    .fi-sidebar-nav {
+        background: white;
+        border-right: 1px solid #E6EFF5;
+    }
+    .fi-topbar, .fi-modal-window {
+        background: white;
+    }
+}
