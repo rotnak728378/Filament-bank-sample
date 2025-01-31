@@ -23,4 +23,7 @@ export default defineConfig({
             manifest: true
         }),
     ],
+    define: {
+        'process.env.APP_URL': JSON.stringify(process.env.APP_URL)
+    }
 })

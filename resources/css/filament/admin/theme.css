@@ -24,15 +24,19 @@
     }
 
     .fi-sidebar-item {
-        @apply !px-6;
+        @apply h-[50px] !pr-3;
+    }
+
+    .fi-sidebar-item a {
+        @apply ml-6;
     }
 
     .fi-sidebar-item-active {
-        @apply bg-transparent !px-5 text-primary-600 border-l-8 border-primary-600;
+        @apply bg-transparent text-primary-600 !flex-row items-center;
     }
 
     .fi-sidebar-item-active a {
-        @apply bg-transparent;
+        @apply bg-transparent ml-5;
     }
 
 }
