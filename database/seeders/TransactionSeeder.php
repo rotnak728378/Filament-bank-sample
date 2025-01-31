@@ -1,10 +1,8 @@
 <?php
-
 namespace Database\Seeders;
 
 use App\Models\Transaction;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class TransactionSeeder extends Seeder
 {
@@ -22,7 +20,7 @@ class TransactionSeeder extends Seeder
                 'type' => 'Shopping',
                 'amount' => -850.00,
                 'status' => 'completed',
-                'created_at' => now()->addDays(-3)->toString(),
+                'created_at' => now()->addDays(-3)->toDateTimeString(),
             ],
             [
                 'user_id' => 1,
@@ -32,7 +30,7 @@ class TransactionSeeder extends Seeder
                 'type' => 'Transfer',
                 'amount' => 750.00,
                 'status' => 'completed',
-                'created_at' => now()->toString(),
+                'created_at' => now()->toDateTimeString(),
             ],
             [
                 'user_id' => 1,
@@ -42,7 +40,7 @@ class TransactionSeeder extends Seeder
                 'type' => 'Deposit',
                 'amount' => 2500.00,
                 'status' => 'completed',
-                'created_at' => now()->addDays(-3)->toString(),
+                'created_at' => now()->addDays(-3)->toDateTimeString(),
             ]
         ]);
 

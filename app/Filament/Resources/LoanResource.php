@@ -22,7 +22,7 @@ class LoanResource extends Resource
     protected static ?int $navigationSort = 6;
     protected static ?string $model = Loan::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-credit-card';
+    protected static ?string $navigationIcon = 'heroicon-o-document-currency-dollar';
 
     public static function getGlobalSearchResultTitle(Model $record): string|Htmlable
     {

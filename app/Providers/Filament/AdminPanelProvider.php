@@ -30,17 +30,22 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->login()
             ->colors([
-                'primary' => Color::Blue,
+                'primary' => [
+                    50 => '239, 246, 255',  // blue-50
+                    600 => '37, 99, 235',   // blue-600
+                ],
             ])
+            ->darkMode(false)
+            ->theme('light')
             ->breadcrumbs(false)
-            ->viteTheme('resources/css/filament/admin/theme.css', 'resources/css/filament/tables.css')
+            ->viteTheme('resources/css/filament/admin/theme.css')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
                 DashboardOverview::class,
             ])
             ->brandLogo(asset('/images/main-logo.png'))
-            ->brandLogoHeight('40px')
+            ->brandLogoHeight('35px')
             ->sidebarWidth('250px')
             ->unsavedChangesAlerts()
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')

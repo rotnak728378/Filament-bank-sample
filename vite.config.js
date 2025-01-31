@@ -4,7 +4,12 @@ import laravel, { refreshPaths } from 'laravel-vite-plugin'
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
+            input: [
+                'resources/css/app.css',
+                'resources/js/app.js',
+                // Add Filament theme
+                'resources/css/filament/admin/theme.css'
+            ],
             refresh: [
                 ...refreshPaths,
                 'app/Filament/**',
@@ -14,6 +19,8 @@ export default defineConfig({
                 'app/Providers/Filament/**',
                 'app/Tables/Columns/**',
             ],
+            buildDirectory: 'build',
+            manifest: true
         }),
     ],
 })

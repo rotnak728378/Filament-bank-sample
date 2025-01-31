@@ -118,16 +118,7 @@ class TransactionPage extends Page implements HasTable
     protected function getTableColumns(): array
     {
         return [
-            // IconColumn::make('type')
-            //     ->icon(fn (string $state): string => match ($state) {
-            //         'Shopping' => 'heroicon-o-shopping-cart',
-            //         'Transfer' => 'heroicon-o-arrow-path',
-            //         'Service' => 'heroicon-o-wrench',
-            //         default => 'heroicon-o-banknotes',
-            //     })
-            //     ->color(fn ($record) => $record->amount < 0 ? 'danger' : 'success'),
-            TextColumn::make('description')
-                ->searchable(),
+            TextColumn::make('description'),
             TextColumn::make('id')
                 ->label('Transaction ID'),
             TextColumn::make('type')
@@ -149,18 +140,6 @@ class TransactionPage extends Page implements HasTable
                 ->money('USD')
                 ->color(fn ($record) => $record->amount < 0 ? 'danger' : 'success')
                 ->alignment('right'),
-        ];
-    }
-
-    protected function getTableFilters(): array
-    {
-        return [
-            SelectFilter::make('type')
-                ->options([
-                    'Shopping' => 'Shopping',
-                    'Transfer' => 'Transfer',
-                    'Service' => 'Service',
-                ]),
         ];
     }
 
