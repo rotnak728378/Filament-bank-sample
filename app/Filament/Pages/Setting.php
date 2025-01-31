@@ -138,4 +138,11 @@ class Setting extends Page
             ->success()
             ->send();
     }
+
+    protected function getViewData(): array
+    {
+        return [
+            'form' => $this->form,
+        ];
+    }
 }

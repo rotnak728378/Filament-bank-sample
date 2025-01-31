@@ -98,7 +98,33 @@
                                     <p>Name on Card</p>
                                     <p class="text-sm text-gray-600">{{ $card->holder_name }}</p>
                                 </div>
-                                <a href="#" class="text-blue-600 hover:text-blue-800">View Details</a>
+                                <a href="#"
+                                    x-data
+                                    @click.prevent="$dispatch('open-card-detail', {
+                                        bank: '{{ $card->bank }}',
+                                        type: '{{ $card->type }}',
+                                        holder_name: '{{ $card->holder_name }}',
+                                        card_number: '{{ $card->card_number }}',
+                                        balance: {{ $card->balance }},
+                                        expired_date: '{{ \Carbon\Carbon::parse($card->expired_date)->format('m/y') }}',
+                                        status: '{{ $card->status }}',
+                                        created_at: '{{ \Carbon\Carbon::parse($card->created_at)->format('m/y') }}',
+                                        recent_transactions: [
+                                            {
+                                                description: 'Latest Transaction 1',
+                                                date: '{{ now()->subDays(1)->format('M d, Y') }}',
+                                                amount: '-$250.00'
+                                            },
+                                            {
+                                                description: 'Latest Transaction 2',
+                                                date: '{{ now()->subDays(2)->format('M d, Y') }}',
+                                                amount: '+$1,000.00'
+                                            }
+                                        ]
+                                    })"
+                                    class="text-blue-600 hover:text-blue-800">
+                                    View Details
+                                    </a>
                             </div>
                         </div>
                     @endforeach
@@ -200,6 +226,8 @@
             </section>
         </div>
     </div>
+
+    <x-card-detail-modal />
 
     @push('scripts')
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
